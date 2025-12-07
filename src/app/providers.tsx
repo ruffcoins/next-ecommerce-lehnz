@@ -1,3 +1,17 @@
+/**
+ * CLIENT-SIDE PROVIDERS WRAPPER
+ * 
+ * Purpose: Wraps the application with necessary providers for state management and authentication.
+ * Combines Redux store, persistence layer, and NextAuth session provider.
+ * 
+ * Architecture Role:
+ * - Provider Layer: Sets up global app context (Redux, Session, Persistence)
+ * - State Management: Initializes Redux store with persistence
+ * - Session Access: Makes auth session available to all client components
+ * 
+ * Used By: Root layout, wraps entire application
+ */
+
 "use client";
 
 import React from "react";
@@ -5,6 +19,7 @@ import { Provider } from "react-redux";
 import { makeStore } from "../lib/store";
 import { PersistGate } from "redux-persist/integration/react";
 import SpinnerbLoader from "@/components/ui/SpinnerbLoader";
+import { SessionProvider } from "next-auth/react";
 
 type Props = {
   children: React.ReactNode;
@@ -23,7 +38,9 @@ const Providers = ({ children }: Props) => {
         }
         persistor={persistor}
       >
-        {children}
+        <SessionProvider>
+          {children}
+        </SessionProvider>
       </PersistGate>
     </Provider>
   );

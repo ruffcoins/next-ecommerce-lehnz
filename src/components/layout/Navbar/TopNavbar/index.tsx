@@ -1,3 +1,17 @@
+/**
+ * TOP NAVIGATION BAR (Server Component)
+ * 
+ * Purpose: Renders the main navigation bar with authentication-aware user icon.
+ * Uses server-side session to determine if user is logged in.
+ * 
+ * Architecture Role:
+ * - UI Layer: Main navigation interface for the application
+ * - Server Component: Fetches auth session on the server for optimal performance
+ * - Conditional Routing: Shows /profile for authenticated users, /login otherwise
+ * 
+ * Used By: Root layout, displayed on every page
+ */
+
 import { cn } from "@/lib/utils";
 import { integralCF } from "@/styles/fonts";
 import Link from "next/link";
@@ -13,6 +27,7 @@ import Image from "next/image";
 import InputGroup from "@/components/ui/input-group";
 import ResTopNavbar from "./ResTopNavbar";
 import CartBtn from "./CartBtn";
+import { auth } from "@/auth";
 
 const data: NavMenu = [
   {
@@ -69,7 +84,8 @@ const data: NavMenu = [
   },
 ];
 
-const TopNavbar = () => {
+const TopNavbar = async () => {
+  const session = await auth();
   return (
     <nav className="sticky top-0 bg-white z-20">
       <div className="flex relative max-w-frame mx-auto items-center justify-between md:justify-start py-5 md:py-6 px-4 xl:px-0">
@@ -131,7 +147,7 @@ const TopNavbar = () => {
             />
           </Link>
           <CartBtn />
-          <Link href="/#signin" className="p-1">
+          <Link href={session ? "/profile" : "/login"} className="p-1">
             <Image
               priority
               src="/icons/user.svg"
