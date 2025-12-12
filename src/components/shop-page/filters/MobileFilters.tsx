@@ -11,8 +11,48 @@ import {
 } from "@/components/ui/drawer";
 import { FiSliders } from "react-icons/fi";
 import Filters from ".";
+import { getUniqueCategories, getUniqueDepartments, getUniqueColors, ProductFilters } from "@/app/actions/product-actions";
+import { ShopPageProps } from "@/app/shop/page";
 
-const MobileFilters = () => {
+const MobileFilters = async ({ searchParams }: ShopPageProps) => {
+  // Build filters from search params
+  const filters: ProductFilters = {};
+
+  if (searchParams.category) {
+    filters.category = searchParams.category;
+  }
+
+  if (searchParams.department) {
+    filters.department = searchParams.department;
+  }
+
+  if (searchParams.colors) {
+    filters.colors = searchParams.colors.split(',');
+  }
+
+  if (searchParams.minPrice) {
+    filters.minPrice = Number(searchParams.minPrice);
+  }
+
+  if (searchParams.maxPrice) {
+    filters.maxPrice = Number(searchParams.maxPrice);
+  }
+
+  if (searchParams.productType) {
+    filters.productType = searchParams.productType;
+  }
+
+  if (searchParams.search) {
+    filters.searchQuery = searchParams.search;
+  }
+
+  // Fetch filter options
+  const [categories, departments, colors] = await Promise.all([
+    getUniqueCategories(),
+    getUniqueDepartments(),
+    getUniqueColors(),
+  ]);
+
   return (
     <>
       <Drawer>
@@ -34,7 +74,7 @@ const MobileFilters = () => {
             <DrawerDescription className="hidden">filters</DrawerDescription>
           </DrawerHeader>
           <div className="max-h-[90%] overflow-y-auto w-full px-5 md:px-6 py-5 space-y-5 md:space-y-6">
-            <Filters />
+            <Filters categories={categories} departments={departments} colors={colors} currentFilters={filters} searchParams={searchParams} />
           </div>
         </DrawerContent>
       </Drawer>

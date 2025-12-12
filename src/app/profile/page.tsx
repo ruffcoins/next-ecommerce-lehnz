@@ -127,7 +127,7 @@ export default async function ProfilePage() {
                                                     })}
                                                 </td>
                                                 <td className="p-4 font-mono text-sm">{t.article_id}</td>
-                                                <td className="p-4">${(t.price * 1000).toFixed(2)}</td>
+                                                <td className="p-4">\u20a6{(t.price).toFixed(2)}</td>
                                                 <td className="p-4">{t.sales_channel_id}</td>
                                             </tr>
                                         ))}

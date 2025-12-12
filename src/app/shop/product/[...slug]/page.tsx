@@ -1,39 +1,37 @@
-import {
-  newArrivalsData,
-  relatedProductData,
-  topSellingData,
-} from "@/app/page";
 import ProductListSec from "@/components/common/ProductListSec";
 import BreadcrumbProduct from "@/components/product-page/BreadcrumbProduct";
 import Header from "@/components/product-page/Header";
 import Tabs from "@/components/product-page/Tabs";
-import { Product } from "@/types/product.types";
 import { notFound } from "next/navigation";
+import { getProductById, getRelatedProducts } from "@/app/actions/product-actions";
 
-const data: Product[] = [
-  ...newArrivalsData,
-  ...topSellingData,
-  ...relatedProductData,
-];
-
-export default function ProductPage({
+export default async function ProductPage({
   params,
 }: {
   params: { slug: string[] };
 }) {
-  const productData = data.find(
-    (product) => product.id === Number(params.slug[0])
-  );
+  const productId = params.slug[0];
 
-  if (!productData?.title) {
+  // Fetch the specific product from MongoDB
+  const productData = await getProductById(productId);
+
+  if (!productData) {
     notFound();
   }
+
+  // Fetch related products based on category and department
+  const relatedProductData = await getRelatedProducts(
+    productId,
+    productData.category,
+    productData.department,
+    4
+  );
 
   return (
     <main>
       <div className="max-w-frame mx-auto px-4 xl:px-0">
         <hr className="h-[1px] border-t-black/10 mb-5 sm:mb-6" />
-        <BreadcrumbProduct title={productData?.title ?? "product"} />
+        <BreadcrumbProduct title={productData.title} />
         <section className="mb-11">
           <Header data={productData} />
         </section>

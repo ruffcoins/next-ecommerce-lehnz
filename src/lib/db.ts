@@ -121,3 +121,54 @@ const TransactionSchema = new mongoose.Schema<ITransaction>(
 const Transaction = mongoose.models.Transaction || mongoose.model<ITransaction>("Transaction", TransactionSchema);
 
 export { Transaction };
+
+// --- Product Model ---
+
+export interface IProductVariation {
+    article_id: string;
+    color_name: string;
+    pattern: string;
+    price: number;
+}
+
+export interface IProduct extends mongoose.Document {
+    product_name: string;
+    description: string;
+    primary_category: string;
+    secondary_category: string;
+    product_type: string;
+    department: string;
+    variations: IProductVariation[];
+    available_colors: string[];
+    product_code: string;
+}
+
+const ProductVariationSchema = new mongoose.Schema({
+    article_id: { type: String, required: true },
+    color_name: { type: String, required: true },
+    pattern: { type: String, required: true },
+    price: { type: Number, required: true },
+}, { _id: false });
+
+const ProductSchema = new mongoose.Schema<IProduct>(
+    {
+        product_name: { type: String, required: true },
+        description: { type: String, required: true },
+        primary_category: { type: String, required: true },
+        secondary_category: { type: String, required: true },
+        product_type: { type: String, required: true },
+        department: { type: String, required: true },
+        variations: { type: [ProductVariationSchema], required: true },
+        available_colors: { type: [String], required: true },
+        product_code: { type: String, required: true },
+    },
+    {
+        collection: "products", // Maps to existing "products" collection in MongoDB
+    }
+);
+
+// Prevent overwriting model if already compiled
+const Product = mongoose.models.Product || mongoose.model<IProduct>("Product", ProductSchema);
+
+export { Product };
+

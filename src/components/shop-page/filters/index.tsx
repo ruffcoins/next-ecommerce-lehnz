@@ -5,26 +5,29 @@ import DressStyleSection from "@/components/shop-page/filters/DressStyleSection"
 import PriceSection from "@/components/shop-page/filters/PriceSection";
 import SizeSection from "@/components/shop-page/filters/SizeSection";
 import { Button } from "@/components/ui/button";
+import { ProductFilters } from "@/app/actions/product-actions";
 
-const Filters = () => {
+interface FiltersProps {
+  categories: string[];
+  departments: string[];
+  colors: string[];
+  currentFilters: ProductFilters;
+  searchParams: Record<string, string | undefined>;
+}
+
+const Filters = ({ categories, departments, colors, currentFilters, searchParams }: FiltersProps) => {
   return (
     <>
       <hr className="border-t-black/10" />
-      <CategoriesSection />
+      <CategoriesSection categories={categories} currentCategory={currentFilters?.category} />
       <hr className="border-t-black/10" />
-      <PriceSection />
+      <PriceSection currentFilters={currentFilters} searchParams={searchParams} />
       <hr className="border-t-black/10" />
-      <ColorsSection />
+      <ColorsSection colors={colors} currentColors={currentFilters?.colors} searchParams={searchParams} />
       <hr className="border-t-black/10" />
-      <SizeSection />
-      <hr className="border-t-black/10" />
-      <DressStyleSection />
-      <Button
-        type="button"
-        className="bg-black w-full rounded-full text-sm font-medium py-4 h-12"
-      >
-        Apply Filter
-      </Button>
+      {/* <SizeSection /> */}
+      {/* <hr className="border-t-black/10" /> */}
+      {/* <DressStyleSection /> */}
     </>
   );
 };

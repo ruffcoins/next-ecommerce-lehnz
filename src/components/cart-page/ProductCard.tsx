@@ -77,27 +77,27 @@ const ProductCard = ({ data }: ProductCardProps) => {
           <div className="flex items-center space-x-[5px] xl:space-x-2.5">
             {data.discount.percentage > 0 ? (
               <span className="font-bold text-black text-xl xl:text-2xl">
-                {`$${Math.round(
+                {`₦${Math.round(
                   data.price - (data.price * data.discount.percentage) / 100
-                )}`}
+                ).toLocaleString("en-US")}`}
               </span>
             ) : data.discount.amount > 0 ? (
               <span className="font-bold text-black text-xl xl:text-2xl">
-                {`$${data.price - data.discount.amount}`}
+                {`₦${(data.price - data.discount.amount).toLocaleString("en-US")}`}
               </span>
             ) : (
               <span className="font-bold text-black text-xl xl:text-2xl">
-                ${data.price}
+                ₦{data.price.toLocaleString("en-US")}
               </span>
             )}
             {data.discount.percentage > 0 && (
               <span className="font-bold text-black/40 line-through text-xl xl:text-2xl">
-                ${data.price}
+                ₦{data.price.toLocaleString("en-US")}
               </span>
             )}
             {data.discount.amount > 0 && (
               <span className="font-bold text-black/40 line-through text-xl xl:text-2xl">
-                ${data.price}
+                ₦{data.price.toLocaleString("en-US")}
               </span>
             )}
             {data.discount.percentage > 0 ? (
@@ -107,7 +107,7 @@ const ProductCard = ({ data }: ProductCardProps) => {
             ) : (
               data.discount.amount > 0 && (
                 <span className="font-medium text-[10px] xl:text-xs py-1.5 px-3.5 rounded-full bg-[#FF3333]/10 text-[#FF3333]">
-                  {`-$${data.discount.amount}`}
+                  {`-₦${data.discount.amount.toLocaleString("en-US")}`}
                 </span>
               )
             )}
@@ -118,15 +118,15 @@ const ProductCard = ({ data }: ProductCardProps) => {
             onRemove={() =>
               data.quantity === 1
                 ? dispatch(
-                    remove({
-                      id: data.id,
-                      attributes: data.attributes,
-                      quantity: data.quantity,
-                    })
-                  )
+                  remove({
+                    id: data.id,
+                    attributes: data.attributes,
+                    quantity: data.quantity,
+                  })
+                )
                 : dispatch(
-                    removeCartItem({ id: data.id, attributes: data.attributes })
-                  )
+                  removeCartItem({ id: data.id, attributes: data.attributes })
+                )
             }
             isZeroDelete
             className="px-5 py-3 max-h-8 md:max-h-10 min-w-[105px] max-w-[105px] sm:max-w-32"

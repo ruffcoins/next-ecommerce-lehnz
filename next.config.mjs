@@ -17,6 +17,16 @@ const nextConfig = {
     experimental: {
         serverComponentsExternalPackages: ["mongoose", "mongodb"],
     },
+    images: {
+        remotePatterns: [
+            {
+                protocol: 'http',
+                hostname: '192.168.0.103',
+                port: '8000',
+                pathname: '/images/**',
+            },
+        ],
+    },
     webpack: (config) => {
         config.resolve.alias = {
             ...config.resolve.alias,

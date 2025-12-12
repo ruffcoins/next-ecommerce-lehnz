@@ -172,7 +172,7 @@ export default function LoginPage() {
                                     onChange={(e) => setLoginPassword(e.target.value)}
                                 />
                             </div>
-                            <Button type="submit" className="w-full">
+                            <Button type="submit" className="w-full rounded-full">
                                 Sign In
                             </Button>
                         </form>
@@ -193,7 +193,7 @@ export default function LoginPage() {
                                             onChange={(e) => setActivateId(e.target.value)}
                                         />
                                     </div>
-                                    <Button type="submit" className="w-full">
+                                    <Button type="submit" className="w-full rounded-full">
                                         Verify ID
                                     </Button>
                                 </form>
@@ -220,7 +220,7 @@ export default function LoginPage() {
                                             onChange={(e) => setActivatePassword(e.target.value)}
                                         />
                                     </div>
-                                    <Button type="submit" className="w-full">
+                                    <Button type="submit" className="w-full rounded-full">
                                         Activate & Login
                                     </Button>
                                 </form>

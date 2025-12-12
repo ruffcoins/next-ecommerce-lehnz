@@ -1,4 +1,6 @@
-import React from "react";
+"use client";
+
+import React, { useEffect } from "react";
 import PhotoSection from "./PhotoSection";
 import { Product } from "@/types/product.types";
 import { integralCF } from "@/styles/fonts";
@@ -7,8 +9,34 @@ import Rating from "@/components/ui/Rating";
 import ColorSelection from "./ColorSelection";
 import SizeSelection from "./SizeSelection";
 import AddToCardSection from "./AddToCardSection";
+import { useAppSelector, useAppDispatch } from "@/lib/hooks/redux";
+import { RootState } from "@/lib/store";
+import { setSelectedVariation } from "@/lib/features/products/productsSlice";
 
 const Header = ({ data }: { data: Product }) => {
+  const dispatch = useAppDispatch();
+  const { selectedVariation } = useAppSelector(
+    (state: RootState) => state.products
+  );
+
+  // Check if product has color variations
+  const hasColorVariations = data.available_colors && data.available_colors.length > 0;
+
+  // For now, we'll hide size selection since it's not in the MongoDB schema
+  // You can add a size field to your products collection if needed
+  const hasSizeVariations = false;
+
+  // Initialize with the first variation if available
+  // Reset when navigating to a different product
+  useEffect(() => {
+    if (data.variations && data.variations.length > 0) {
+      dispatch(setSelectedVariation(data.variations[0]));
+    }
+  }, [data.id, data.variations, dispatch]);
+
+  // Use the selected variation's price if available, otherwise use the base product price
+  const currentPrice = selectedVariation?.price ?? 10000;
+
   return (
     <>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -41,27 +69,27 @@ const Header = ({ data }: { data: Product }) => {
           <div className="flex items-center space-x-2.5 sm:space-x-3 mb-5">
             {data.discount.percentage > 0 ? (
               <span className="font-bold text-black text-2xl sm:text-[32px]">
-                {`$${Math.round(
-                  data.price - (data.price * data.discount.percentage) / 100
-                )}`}
+                {`₦${Math.round(
+                  currentPrice - (currentPrice * data.discount.percentage) / 100
+                ).toLocaleString("en-US")}`}
               </span>
             ) : data.discount.amount > 0 ? (
               <span className="font-bold text-black text-2xl sm:text-[32px]">
-                {`$${data.price - data.discount.amount}`}
+                {`₦${(currentPrice - data.discount.amount).toLocaleString("en-US")}`}
               </span>
             ) : (
               <span className="font-bold text-black text-2xl sm:text-[32px]">
-                ${data.price}
+                ₦{currentPrice?.toLocaleString("en-US")}
               </span>
             )}
             {data.discount.percentage > 0 && (
               <span className="font-bold text-black/40 line-through text-2xl sm:text-[32px]">
-                ${data.price}
+                ₦{currentPrice?.toLocaleString("en-US")}
               </span>
             )}
             {data.discount.amount > 0 && (
               <span className="font-bold text-black/40 line-through text-2xl sm:text-[32px]">
-                ${data.price}
+                ₦{currentPrice?.toLocaleString("en-US")}
               </span>
             )}
             {data.discount.percentage > 0 ? (
@@ -71,19 +99,31 @@ const Header = ({ data }: { data: Product }) => {
             ) : (
               data.discount.amount > 0 && (
                 <span className="font-medium text-[10px] sm:text-xs py-1.5 px-3.5 rounded-full bg-[#FF3333]/10 text-[#FF3333]">
-                  {`-$${data.discount.amount}`}
+                  {`-₦${data.discount.amount.toLocaleString("en-US")}`}
                 </span>
               )
             )}
           </div>
           <p className="text-sm sm:text-base text-black/60 mb-5">
-            This graphic t-shirt which is perfect for any occasion. Crafted from
-            a soft and breathable fabric, it offers superior comfort and style.
+            {data.description || "This product is perfect for any occasion. Crafted with quality materials for superior comfort and style."}
           </p>
-          <hr className="h-[1px] border-t-black/10 mb-5" />
-          <ColorSelection />
-          <hr className="h-[1px] border-t-black/10 my-5" />
-          <SizeSelection />
+
+          {/* Only show color selection if product has color variations */}
+          {hasColorVariations && (
+            <>
+              <hr className="h-[1px] border-t-black/10 mb-5" />
+              <ColorSelection colors={data.available_colors} variations={data.variations} />
+            </>
+          )}
+
+          {/* Only show size selection if product has size variations */}
+          {hasSizeVariations && (
+            <>
+              <hr className="h-[1px] border-t-black/10 my-5" />
+              <SizeSelection />
+            </>
+          )}
+
           <hr className="hidden md:block h-[1px] border-t-black/10 my-5" />
           <AddToCardSection data={data} />
         </div>
