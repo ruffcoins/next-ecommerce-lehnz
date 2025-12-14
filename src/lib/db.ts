@@ -172,3 +172,47 @@ const Product = mongoose.models.Product || mongoose.model<IProduct>("Product", P
 
 export { Product };
 
+// --- Order Model ---
+
+export interface IOrderItem {
+    product_id: string;
+    name: string;
+    price: number;
+    quantity: number;
+    attributes: string[];
+    srcUrl: string;
+}
+
+export interface IOrder extends mongoose.Document {
+    customer_id?: string;
+    items: IOrderItem[];
+    total_amount: number;
+    status: string;
+    createdAt: Date;
+}
+
+const OrderItemSchema = new mongoose.Schema({
+    product_id: { type: String, required: true },
+    name: { type: String, required: true },
+    price: { type: Number, required: true },
+    quantity: { type: Number, required: true },
+    attributes: { type: [String], required: true },
+    srcUrl: { type: String, required: true },
+}, { _id: false });
+
+const OrderSchema = new mongoose.Schema<IOrder>(
+    {
+        customer_id: { type: String },
+        items: [OrderItemSchema],
+        total_amount: { type: Number, required: true },
+        status: { type: String, default: "pending" },
+    },
+    {
+        timestamps: true,
+        collection: "orders",
+    }
+);
+
+const Order = mongoose.models.Order || mongoose.model<IOrder>("Order", OrderSchema);
+
+export { Order };

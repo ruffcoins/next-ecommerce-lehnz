@@ -13,11 +13,43 @@ import React from "react";
 import { RootState } from "@/lib/store";
 import { useAppSelector } from "@/lib/hooks/redux";
 import Link from "next/link";
+import { createOrder } from "../actions/order-actions";
+import { clearCart } from "@/lib/features/carts/cartsSlice";
+import { useAppDispatch } from "@/lib/hooks/redux";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 export default function CartPage() {
   const { cart, totalPrice, adjustedTotalPrice } = useAppSelector(
     (state: RootState) => state.carts
   );
+  const dispatch = useAppDispatch();
+  const router = useRouter();
+  const [isCheckingOut, setIsCheckingOut] = useState(false);
+
+  const handleCheckout = async () => {
+    if (!cart || cart.items.length === 0) return;
+
+    setIsCheckingOut(true);
+    try {
+      const result = await createOrder(cart.items, adjustedTotalPrice);
+      if (result.success) {
+        dispatch(clearCart());
+        // alert("Order placed successfully! Order ID: " + result.orderId); // simulation modal is enough
+        router.push("/profile");
+      } else if (result.error === "unauthenticated") {
+        router.push("/login?callbackUrl=/cart");
+        setIsCheckingOut(false);
+      } else {
+        alert("Failed to place order. " + (result.error || "Please try again."));
+        setIsCheckingOut(false);
+      }
+    } catch (error) {
+      console.error("Checkout error:", error);
+      alert("An unexpected error occurred.");
+      setIsCheckingOut(false);
+    }
+  };
 
   return (
     <main className="pb-20">
@@ -57,12 +89,12 @@ export default function CartPage() {
                     <span className="md:text-xl text-black/60">
                       Discount (-
                       {Math.round(
-                        ((totalPrice - adjustedTotalPrice) / totalPrice) * 100
-                      )}
+                        ((totalPrice - adjustedTotalPrice) / totalPrice) * 0
+                      ).toLocaleString("en-US")}
                       %)
                     </span>
                     <span className="md:text-xl font-bold text-red-600">
-                      -₦{Math.round(totalPrice - adjustedTotalPrice).toLocaleString("en-US")}
+                      ₦{Math.round((totalPrice - adjustedTotalPrice) * 0).toLocaleString("en-US")}
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
@@ -100,10 +132,12 @@ export default function CartPage() {
                 </div>
                 <Button
                   type="button"
+                  onClick={handleCheckout}
+                  disabled={isCheckingOut}
                   className="text-sm md:text-base font-medium bg-black rounded-full w-full py-4 h-[54px] md:h-[60px] group"
                 >
-                  Go to Checkout{" "}
-                  <FaArrowRight className="text-xl ml-2 group-hover:translate-x-1 transition-all" />
+                  {isCheckingOut ? "Processing..." : "Go to Checkout"}{" "}
+                  {!isCheckingOut && <FaArrowRight className="text-xl ml-2 group-hover:translate-x-1 transition-all" />}
                 </Button>
               </div>
             </div>
@@ -118,6 +152,20 @@ export default function CartPage() {
           </div>
         )}
       </div>
+      {isCheckingOut && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white p-8 rounded-[20px] shadow-xl max-w-sm w-full text-center">
+            <div className="mb-6 flex justify-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black"></div>
+            </div>
+            <h3 className="text-xl font-bold mb-2">Simulating Payment</h3>
+            <p className="text-gray-500">
+              This is a demonstration. No actual payment is being processed.
+            </p>
+            <p className="text-sm text-gray-400 mt-4">Redirecting to order history...</p>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

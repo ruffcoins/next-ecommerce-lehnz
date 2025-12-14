@@ -53,7 +53,7 @@ const PriceSection = ({ currentFilters, searchParams }: PriceSectionProps) => {
             min={20}
             max={200}
             step={5}
-            label="\u20a6"
+            label="₦"
           />
           <div className="mb-3" />
         </AccordionContent>

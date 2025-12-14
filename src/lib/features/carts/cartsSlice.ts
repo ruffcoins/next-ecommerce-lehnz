@@ -12,8 +12,8 @@ const calcAdjustedTotalPrice = (
     (totalPrice + data.discount.percentage > 0
       ? Math.round(data.price - (data.price * data.discount.percentage) / 100)
       : data.discount.amount > 0
-      ? Math.round(data.price - data.discount.amount)
-      : data.price) * (quantity ? quantity : data.quantity)
+        ? Math.round(data.price - data.discount.amount)
+        : data.price) * (quantity ? quantity : data.quantity)
   );
 };
 
@@ -87,9 +87,9 @@ export const cartsSlice = createSlice({
             if (
               eachCartItem.id === action.payload.id
                 ? !compareArrays(
-                    eachCartItem.attributes,
-                    isItemInCart.attributes
-                  )
+                  eachCartItem.attributes,
+                  isItemInCart.attributes
+                )
                 : eachCartItem.id !== action.payload.id
             )
               return eachCartItem;
@@ -138,9 +138,9 @@ export const cartsSlice = createSlice({
               if (
                 eachCartItem.id === action.payload.id
                   ? !compareArrays(
-                      eachCartItem.attributes,
-                      isItemInCart.attributes
-                    )
+                    eachCartItem.attributes,
+                    isItemInCart.attributes
+                  )
                   : eachCartItem.id !== action.payload.id
               )
                 return eachCartItem;
@@ -194,9 +194,15 @@ export const cartsSlice = createSlice({
           isItemInCart.quantity
         );
     },
+    clearCart: (state) => {
+      state.cart = null;
+      state.totalPrice = 0;
+      state.adjustedTotalPrice = 0;
+      state.action = "delete";
+    },
   },
 });
 
-export const { addToCart, removeCartItem, remove } = cartsSlice.actions;
+export const { addToCart, removeCartItem, remove, clearCart } = cartsSlice.actions;
 
 export default cartsSlice.reducer;

@@ -218,7 +218,7 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
                 href={buildUrl({ minPrice: undefined, maxPrice: undefined, page: undefined })}
                 className="inline-flex items-center gap-1 px-3 py-1 bg-black text-white text-sm rounded-full hover:bg-black/80"
               >
-                Price: \u20a6{(filters.minPrice || 0).toLocaleString("en-US")} - \u20a6{(filters.maxPrice || 250).toLocaleString("en-US")}
+                Price: ₦{(filters.minPrice || 0).toLocaleString("en-US")} - ₦{(filters.maxPrice || 250).toLocaleString("en-US")}
                 <span className="text-lg">×</span>
               </Link>
             )}

@@ -13,7 +13,7 @@ const AddToCartBtn = ({ data }: { data: Product & { quantity: number } }) => {
   );
 
   // Use the selected variation's price if available, otherwise use the base product price
-  const currentPrice = selectedVariation?.price ?? data.price;
+  const currentPrice = selectedVariation?.price ?? data?.variations?.[0].price;
 
   return (
     <button
@@ -25,7 +25,7 @@ const AddToCartBtn = ({ data }: { data: Product & { quantity: number } }) => {
             id: parseInt(data.id),
             name: data.title,
             srcUrl: data.srcUrl,
-            price: currentPrice,
+            price: currentPrice as number,
             attributes: [sizeSelection, colorSelection.name],
             discount: data.discount,
             quantity: data.quantity,

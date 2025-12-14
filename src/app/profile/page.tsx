@@ -1,10 +1,11 @@
 import { auth, signOut } from "@/auth";
-import dbConnect, { Customer, Transaction } from "@/lib/db";
+import dbConnect, { Customer, Order } from "@/lib/db";
 import { redirect } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { satoshi } from "@/styles/fonts";
 import { cn } from "@/lib/utils";
+import OrdersTable from "@/components/profile/OrdersTable";
 
 export default async function ProfilePage() {
     const session = await auth();
@@ -44,11 +45,13 @@ export default async function ProfilePage() {
         );
     }
 
-    // Fetch recent transactions
-    const transactions = await Transaction.find({ customer_id: customer.customer_id })
-        .sort({ t_dat: -1 }) // Sort by date descending
+    // Fetch recent orders
+    const ordersRaw = await Order.find({ customer_id: session.user.id })
+        .sort({ createdAt: -1 }) // Sort by date descending
         .limit(10)
         .lean();
+
+    const orders = JSON.parse(JSON.stringify(ordersRaw));
 
     return (
         <div className="container relative mx-auto max-w-frame px-4 xl:px-0 py-8 lg:py-12">
@@ -105,43 +108,7 @@ export default async function ProfilePage() {
                     <h2 className="text-2xl font-bold">Recent Orders</h2>
 
                     <div className="border rounded-[20px] overflow-hidden">
-                        {transactions.length > 0 ? (
-                            <div className="overflow-x-auto">
-                                <table className="w-full text-left">
-                                    <thead className="bg-gray-50 border-b">
-                                        <tr>
-                                            <th className="p-4 font-medium text-gray-500">Date</th>
-                                            <th className="p-4 font-medium text-gray-500">Product Id</th>
-                                            <th className="p-4 font-medium text-gray-500">Price</th>
-                                            <th className="p-4 font-medium text-gray-500">Channel</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y">
-                                        {transactions.map((t: any) => (
-                                            <tr key={t._id.toString()} className="hover:bg-gray-50 transition-colors">
-                                                <td className="p-4 whitespace-nowrap">
-                                                    {new Date(t.t_dat).toLocaleDateString("en-US", {
-                                                        month: "short",
-                                                        day: "numeric",
-                                                        year: "numeric",
-                                                    })}
-                                                </td>
-                                                <td className="p-4 font-mono text-sm">{t.article_id}</td>
-                                                <td className="p-4">\u20a6{(t.price).toFixed(2)}</td>
-                                                <td className="p-4">{t.sales_channel_id}</td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        ) : (
-                            <div className="p-12 text-center text-gray-500">
-                                <p>No recent orders found.</p>
-                                <Link href="/shop" className="text-black underline mt-2 block hover:no-underline">
-                                    Start Shopping
-                                </Link>
-                            </div>
-                        )}
+                        <OrdersTable orders={orders} />
                     </div>
                 </div>
             </div>
