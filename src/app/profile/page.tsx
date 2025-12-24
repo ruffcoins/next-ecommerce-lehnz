@@ -47,7 +47,7 @@ export default async function ProfilePage() {
 
     // Fetch recent orders
     const ordersRaw = await Order.find({ customer_id: session.user.id })
-        .sort({ createdAt: -1 }) // Sort by date descending
+        .sort({ created_at: -1 }) // Sort by date descending
         .limit(10)
         .lean();
 

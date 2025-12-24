@@ -25,29 +25,49 @@ export default function CartPage() {
   );
   const dispatch = useAppDispatch();
   const router = useRouter();
-  const [isCheckingOut, setIsCheckingOut] = useState(false);
+  const [checkoutStatus, setCheckoutStatus] = useState<"idle" | "processing" | "success">("idle");
+  const [statusMessage, setStatusMessage] = useState("");
+  const [orderId, setOrderId] = useState<string | null>(null);
+  const [idempotencyKey, setIdempotencyKey] = useState<string | null>(null);
 
   const handleCheckout = async () => {
     if (!cart || cart.items.length === 0) return;
 
-    setIsCheckingOut(true);
+    setCheckoutStatus("processing");
+    setStatusMessage("Verifying order details...");
+
+    let activeKey = idempotencyKey;
+    if (!activeKey) {
+      activeKey = crypto.randomUUID();
+      setIdempotencyKey(activeKey);
+    }
+
     try {
-      const result = await createOrder(cart.items, adjustedTotalPrice);
+      // Small delays to make it feel like real work is happening
+      await new Promise(r => setTimeout(r, 800));
+      setStatusMessage("Securing payment connection...");
+      await new Promise(r => setTimeout(r, 1200));
+      setStatusMessage("Processing transaction...");
+
+      const result = await createOrder(cart.items, adjustedTotalPrice, activeKey);
+
       if (result.success) {
+        setOrderId(result.orderId);
+        setCheckoutStatus("success");
         dispatch(clearCart());
-        // alert("Order placed successfully! Order ID: " + result.orderId); // simulation modal is enough
-        router.push("/profile");
+        setIdempotencyKey(null);
       } else if (result.error === "unauthenticated") {
         router.push("/login?callbackUrl=/cart");
-        setIsCheckingOut(false);
+        setCheckoutStatus("idle");
       } else {
         alert("Failed to place order. " + (result.error || "Please try again."));
-        setIsCheckingOut(false);
+        setCheckoutStatus("idle");
+        setIdempotencyKey(null);
       }
     } catch (error) {
       console.error("Checkout error:", error);
       alert("An unexpected error occurred.");
-      setIsCheckingOut(false);
+      setCheckoutStatus("idle");
     }
   };
 
@@ -87,14 +107,10 @@ export default function CartPage() {
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="md:text-xl text-black/60">
-                      Discount (-
-                      {Math.round(
-                        ((totalPrice - adjustedTotalPrice) / totalPrice) * 0
-                      ).toLocaleString("en-US")}
-                      %)
+                      Discount (0%)
                     </span>
                     <span className="md:text-xl font-bold text-red-600">
-                      ₦{Math.round((totalPrice - adjustedTotalPrice) * 0).toLocaleString("en-US")}
+                      -₦0
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
@@ -133,11 +149,11 @@ export default function CartPage() {
                 <Button
                   type="button"
                   onClick={handleCheckout}
-                  disabled={isCheckingOut}
+                  disabled={checkoutStatus !== "idle"}
                   className="text-sm md:text-base font-medium bg-black rounded-full w-full py-4 h-[54px] md:h-[60px] group"
                 >
-                  {isCheckingOut ? "Processing..." : "Go to Checkout"}{" "}
-                  {!isCheckingOut && <FaArrowRight className="text-xl ml-2 group-hover:translate-x-1 transition-all" />}
+                  {checkoutStatus === "processing" ? "Processing..." : "Go to Checkout"}{" "}
+                  {checkoutStatus === "idle" && <FaArrowRight className="text-xl ml-2 group-hover:translate-x-1 transition-all" />}
                 </Button>
               </div>
             </div>
@@ -152,17 +168,60 @@ export default function CartPage() {
           </div>
         )}
       </div>
-      {isCheckingOut && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white p-8 rounded-[20px] shadow-xl max-w-sm w-full text-center">
-            <div className="mb-6 flex justify-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black"></div>
+
+      {/* Checkout Processing Overlay */}
+      {checkoutStatus === "processing" && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 transition-all duration-300">
+          <div className="bg-white p-10 rounded-[32px] shadow-2xl max-w-sm w-full text-center border border-white/20">
+            <div className="mb-8 flex justify-center relative">
+              <div className="absolute inset-0 bg-black/5 blur-xl rounded-full scale-150 animate-pulse"></div>
+              <div className="animate-spin rounded-full h-16 w-16 border-[3px] border-black/10 border-b-black relative z-10"></div>
             </div>
-            <h3 className="text-xl font-bold mb-2">Simulating Payment</h3>
-            <p className="text-gray-500">
-              This is a demonstration. No actual payment is being processed.
+            <h3 className="text-2xl font-bold mb-3 text-black">Secure Checkout</h3>
+            <p className="text-gray-500 font-medium animate-pulse">
+              {statusMessage}
             </p>
-            <p className="text-sm text-gray-400 mt-4">Redirecting to order history...</p>
+          </div>
+        </div>
+      )}
+
+      {/* Success Modal */}
+      {checkoutStatus === "success" && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-50 p-4 animate-in fade-in duration-500">
+          <div className="bg-white p-10 rounded-[32px] shadow-[0_20px_50px_rgba(0,0,0,0.2)] max-w-md w-full text-center border border-gray-100 transform animate-in zoom-in-95 slide-in-from-bottom-10 duration-500">
+            <div className="mb-8 flex justify-center scale-110">
+              <div className="h-24 w-24 bg-green-500 rounded-full flex items-center justify-center shadow-lg shadow-green-200 animate-bounce cursor-default">
+                <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path>
+                </svg>
+              </div>
+            </div>
+
+            <h3 className={cn([integralCF.className, "text-3xl font-bold mb-4 text-black uppercase"])}>Order Confirmed!</h3>
+            <p className="text-gray-600 mb-8 px-4 leading-relaxed">
+              Your fashion journey has begun. We&apos;ve sent a confirmation email with all the details.
+            </p>
+
+            <div className="bg-gray-50 rounded-2xl p-5 mb-8 border border-gray-100">
+              <span className="text-xs uppercase tracking-widest text-gray-400 font-bold block mb-1">Order reference</span>
+              <code className="text-lg font-mono font-bold text-black select-all">#{orderId?.slice(-8).toUpperCase()}</code>
+            </div>
+
+            <div className="flex flex-col space-y-3">
+              <Button
+                onClick={() => router.push(`/profile/orders/${orderId}`)}
+                className="bg-black text-white rounded-full py-6 font-bold text-lg hover:bg-gray-800 transition-all shadow-lg active:scale-95"
+              >
+                Track Order
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => router.push("/shop")}
+                className="border-2 border-black rounded-full py-6 font-bold text-lg hover:bg-black hover:text-white transition-all active:scale-95"
+              >
+                Continue Shopping
+              </Button>
+            </div>
           </div>
         </div>
       )}

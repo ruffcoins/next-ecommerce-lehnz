@@ -1,6 +1,6 @@
 // MongoDB Product Types
 export type ProductVariation = {
-  article_id: string;
+  article_id: number;
   color_name: string;
   pattern: string;
   price: number;
@@ -22,7 +22,7 @@ export type MongoProduct = {
   department: string;
   variations: ProductVariation[];
   available_colors: string[];
-  product_code: string;
+  product_code: number;
 };
 
 // UI Product Type (for compatibility with existing components)
@@ -39,10 +39,10 @@ export type Product = {
   department?: string;
   variations?: ProductVariation[];
   available_colors?: string[];
-  product_code?: string;
+  product_code?: number;
 };
 
 // Helper to generate image URL from article_id
-export const getImageUrl = (articleId: string): string => {
+export const getImageUrl = (articleId: number): string => {
   return `http://192.168.0.103:8000/images/${articleId}`;
 };

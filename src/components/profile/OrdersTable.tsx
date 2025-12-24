@@ -7,7 +7,7 @@ import Link from "next/link";
 
 interface Order {
     _id: string;
-    createdAt: string;
+    created_at: string;
     status: string;
     total_amount: number;
     items: any[];
@@ -57,7 +57,7 @@ const OrdersTable = ({ orders }: OrdersTableProps) => {
                                 #{order._id.slice(-6)}
                             </td>
                             <td className="p-4 whitespace-nowrap">
-                                {new Date(order.createdAt).toLocaleDateString("en-US", {
+                                {new Date(order.created_at).toLocaleDateString("en-US", {
                                     month: "short",
                                     day: "numeric",
                                     year: "numeric",

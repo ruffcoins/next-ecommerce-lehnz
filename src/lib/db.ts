@@ -97,20 +97,20 @@ export { Customer };
 // --- Transaction Model ---
 
 export interface ITransaction extends mongoose.Document {
-    t_dat: string; // Date stored as string in example
+    t_dat: Date;
     customer_id: string;
-    article_id: string;
+    article_id: number;
     price: number;
-    sales_channel_id: string;
+    sales_channel_id: number;
 }
 
 const TransactionSchema = new mongoose.Schema<ITransaction>(
     {
-        t_dat: { type: String, required: true },
+        t_dat: { type: Date, required: true },
         customer_id: { type: String, required: true, index: true },
-        article_id: { type: String, required: true },
+        article_id: { type: Number, required: true },
         price: { type: Number, required: true },
-        sales_channel_id: { type: String, required: true },
+        sales_channel_id: { type: Number, required: true },
     },
     {
         collection: "transactions", // Maps to existing "transactions" collection
@@ -125,7 +125,7 @@ export { Transaction };
 // --- Product Model ---
 
 export interface IProductVariation {
-    article_id: string;
+    article_id: number;
     color_name: string;
     pattern: string;
     price: number;
@@ -140,11 +140,11 @@ export interface IProduct extends mongoose.Document {
     department: string;
     variations: IProductVariation[];
     available_colors: string[];
-    product_code: string;
+    product_code: number;
 }
 
 const ProductVariationSchema = new mongoose.Schema({
-    article_id: { type: String, required: true },
+    article_id: { type: Number, required: true },
     color_name: { type: String, required: true },
     pattern: { type: String, required: true },
     price: { type: Number, required: true },
@@ -160,7 +160,7 @@ const ProductSchema = new mongoose.Schema<IProduct>(
         department: { type: String, required: true },
         variations: { type: [ProductVariationSchema], required: true },
         available_colors: { type: [String], required: true },
-        product_code: { type: String, required: true },
+        product_code: { type: Number, required: true },
     },
     {
         collection: "products", // Maps to existing "products" collection in MongoDB
@@ -175,29 +175,38 @@ export { Product };
 // --- Order Model ---
 
 export interface IOrderItem {
-    product_id: string;
-    name: string;
+    product_id: string;      // The ObjectId of the product
+    product_code: number;
+    article_id: number;
+    product_name: string;
+    color_name: string;
+    pattern: string;
     price: number;
     quantity: number;
-    attributes: string[];
-    srcUrl: string;
+    image_url: string;
 }
 
 export interface IOrder extends mongoose.Document {
     customer_id?: string;
     items: IOrderItem[];
     total_amount: number;
+    transaction_count?: number;
     status: string;
-    createdAt: Date;
+    idempotency_key?: string; // Prevent duplicate orders
+    created_at: Date;
+    updated_at: Date;
 }
 
 const OrderItemSchema = new mongoose.Schema({
-    product_id: { type: String, required: true },
-    name: { type: String, required: true },
+    product_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Product' },
+    product_code: { type: Number, required: true },
+    article_id: { type: Number, required: true },
+    product_name: { type: String, required: true },
+    color_name: { type: String, required: true },
+    pattern: { type: String },
     price: { type: Number, required: true },
-    quantity: { type: Number, required: true },
-    attributes: { type: [String], required: true },
-    srcUrl: { type: String, required: true },
+    quantity: { type: Number, required: true, default: 1 },
+    image_url: { type: String, required: true },
 }, { _id: false });
 
 const OrderSchema = new mongoose.Schema<IOrder>(
@@ -205,10 +214,13 @@ const OrderSchema = new mongoose.Schema<IOrder>(
         customer_id: { type: String },
         items: [OrderItemSchema],
         total_amount: { type: Number, required: true },
+        transaction_count: { type: Number },
         status: { type: String, default: "pending" },
+        idempotency_key: { type: String, unique: true, sparse: true },
+        created_at: { type: Date },
+        updated_at: { type: Date },
     },
     {
-        timestamps: true,
         collection: "orders",
     }
 );

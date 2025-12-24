@@ -22,10 +22,15 @@ const AddToCartBtn = ({ data }: { data: Product & { quantity: number } }) => {
       onClick={() =>
         dispatch(
           addToCart({
-            id: parseInt(data.id),
-            name: data.title,
-            srcUrl: data.srcUrl,
-            price: currentPrice as number,
+            id: selectedVariation ? selectedVariation.article_id : parseInt(data.id),
+            product_id: data.id,
+            article_id: selectedVariation ? selectedVariation.article_id : parseInt(data.id),
+            product_code: data.product_code || 0,
+            product_name: data.title,
+            color_name: selectedVariation?.color_name || colorSelection.name,
+            pattern: selectedVariation?.pattern || "",
+            image_url: selectedVariation ? `${selectedVariation.article_id}.jpg` : data.srcUrl,
+            price: (currentPrice as number),
             attributes: [sizeSelection, colorSelection.name],
             discount: data.discount,
             quantity: data.quantity,

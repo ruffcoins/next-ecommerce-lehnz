@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { satoshi } from "@/styles/fonts";
+import { getImageUrl } from "@/types/product.types";
 
 export default async function OrderPage({ params }: { params: { id: string } }) {
     const session = await auth();
@@ -32,7 +33,7 @@ export default async function OrderPage({ params }: { params: { id: string } }) 
                     </span>
                 </div>
                 <p className="text-gray-500 mt-2">
-                    Placed on {new Date(order.createdAt).toLocaleDateString("en-US", {
+                    Placed on {new Date(order.created_at).toLocaleDateString("en-US", {
                         weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
                     })}
                 </p>
@@ -46,8 +47,13 @@ export default async function OrderPage({ params }: { params: { id: string } }) 
                             {order.items.map((item: any, i: number) => (
                                 <div key={i} className="flex gap-4 border-b last:border-0 pb-6 last:pb-0">
                                     <div className="relative w-20 h-24 md:w-24 md:h-32 bg-[#F0EEED] rounded-lg overflow-hidden flex-shrink-0">
-                                        {item.srcUrl ? (
-                                            <Image src={item.srcUrl} alt={item.name} fill className="object-cover" />
+                                        {item.image_url ? (
+                                            <Image
+                                                src={getImageUrl(item.article_id)}
+                                                alt={item.product_name}
+                                                fill
+                                                className="object-cover"
+                                            />
                                         ) : (
                                             <div className="w-full h-full bg-gray-200" />
                                         )}
@@ -55,11 +61,10 @@ export default async function OrderPage({ params }: { params: { id: string } }) 
                                     <div className="flex-1">
                                         <div className="flex justify-between items-start">
                                             <div>
-                                                <h3 className="font-bold text-base md:text-lg">{item.name}</h3>
+                                                <h3 className="font-bold text-base md:text-lg">{item.product_name}</h3>
                                                 <div className="text-sm text-gray-500 mt-1 space-y-1">
-                                                    {item.attributes.map((attr: string, idx: number) => (
-                                                        <p key={idx}>{attr}</p>
-                                                    ))}
+                                                    <p>Color: {item.color_name}</p>
+                                                    {item.pattern && <p>Pattern: {item.pattern}</p>}
                                                     <p>Qty: {item.quantity}</p>
                                                 </div>
                                             </div>
