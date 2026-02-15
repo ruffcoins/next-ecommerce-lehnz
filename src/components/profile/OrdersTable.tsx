@@ -54,14 +54,14 @@ const OrdersTable = ({ orders }: OrdersTableProps) => {
                             className="hover:bg-gray-50 transition-colors cursor-pointer group"
                         >
                             <td className="p-4 font-mono text-sm uppercase group-hover:underline">
-                                #{order._id.slice(-6)}
+                                #{order._id ? order._id.slice(-6) : "......"}
                             </td>
                             <td className="p-4 whitespace-nowrap">
-                                {new Date(order.created_at).toLocaleDateString("en-US", {
+                                {order.created_at ? new Date(order.created_at).toLocaleDateString("en-US", {
                                     month: "short",
                                     day: "numeric",
                                     year: "numeric",
-                                })}
+                                }) : "Pending"}
                             </td>
                             <td className="p-4">
                                 <span
@@ -72,14 +72,14 @@ const OrdersTable = ({ orders }: OrdersTableProps) => {
                                             : "bg-yellow-100 text-yellow-800"
                                     )}
                                 >
-                                    {order.status}
+                                    {order.status || "pending"}
                                 </span>
                             </td>
                             <td className="p-4 font-medium">
-                                ₦{order.total_amount.toLocaleString("en-US")}
+                                ₦{(order.total_amount || 0).toLocaleString("en-US")}
                             </td>
                             <td className="p-4 text-sm text-gray-500">
-                                {order.items.length} items
+                                {order.items?.length || 0} items
                             </td>
                         </tr>
                     ))}

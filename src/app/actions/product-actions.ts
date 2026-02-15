@@ -71,6 +71,65 @@ export async function getAllProducts(): Promise<Product[]> {
     }
 }
 
+export async function getRecommendedProducts(
+    userId: string,
+    page: number = 1,
+    limit: number = 12
+): Promise<{ products: Product[]; total: number; totalPages: number }> {
+    if (!userId) {
+        return { products: [], total: 0, totalPages: 0 };
+    }
+
+    try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_RECOMMENDATION_API_URL}/recommend?user_id=${userId}&tenant_id=${process.env.NEXT_PUBLIC_TENANT_ID}&page=${page}&limit=${limit}`);
+        const data = await res.json();
+
+        const idsToFetch = data.all_item_ids || [];
+
+        const products = await getProductsByIds(idsToFetch);
+
+        return {
+            products,
+            total: data.meta?.total_items || products.length,
+            totalPages: data.meta?.total_pages || 1
+        };
+    } catch (error) {
+        console.error("Error fetching recommended products:", error);
+        return { products: [], total: 0, totalPages: 0 };
+    }
+}
+
+export async function getItemRecommendations(
+    itemId: string,
+    page: number = 1,
+    limit: number = 4
+): Promise<Product[]> {
+    if (!itemId) {
+        return [];
+    }
+
+    try {
+        // Construct URL for item-based recommendations
+        // Using "semantic" mode as requested
+        const url = `${process.env.NEXT_PUBLIC_RECOMMENDATION_API_URL}/item/${itemId}?page=${page}&limit=${limit}&mode=semantic&tenant_id=${process.env.NEXT_PUBLIC_TENANT_ID}`;
+
+        const res = await fetch(url);
+        const data = await res.json();
+
+        const idsToFetch = data.all_item_ids || [];
+
+        if (idsToFetch.length === 0) {
+            return [];
+        }
+
+        const products = await getProductsByIds(idsToFetch);
+        return products;
+    } catch (error) {
+        console.error("Error fetching item recommendations:", error);
+        return [];
+    }
+}
+
 /**
  * Fetch a single product by ID
  * @param id - MongoDB ObjectId or product_code
@@ -89,6 +148,31 @@ export async function getProductById(id: string): Promise<Product | null> {
     } catch (error) {
         console.error(`Error fetching product ${id}:`, error);
         return null;
+    }
+}
+
+/**
+ * Fetch multiple products by their IDs
+ * @param ids - Array of MongoDB ObjectIds
+ * @returns Array of found products
+ */
+export async function getProductsByIds(ids: string[]): Promise<Product[]> {
+    try {
+        await dbConnect();
+        const products = await ProductModel.find({
+            _id: { $in: ids }
+        }).lean<IProduct[]>();
+
+        // Sort the results to match the order of the input IDs (optional but good for maintaining recommendation rank)
+        const productsMap = new Map(products.map(p => [p._id.toString(), p]));
+        const orderedProducts = ids
+            .map(id => productsMap.get(id))
+            .filter((p): p is IProduct => !!p);
+
+        return orderedProducts.map(transformProduct);
+    } catch (error) {
+        console.error("Error fetching products by IDs:", error);
+        return [];
     }
 }
 

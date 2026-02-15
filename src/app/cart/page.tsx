@@ -18,6 +18,7 @@ import { clearCart } from "@/lib/features/carts/cartsSlice";
 import { useAppDispatch } from "@/lib/hooks/redux";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { tracker } from "@/lib/recommendationClient";
 
 export default function CartPage() {
   const { cart, totalPrice, adjustedTotalPrice } = useAppSelector(
@@ -36,6 +37,18 @@ export default function CartPage() {
     setCheckoutStatus("processing");
     setStatusMessage("Verifying order details...");
 
+    // Track checkout_start for each item in the cart
+    cart.items.forEach((item) => {
+      tracker.track({
+        eventType: "checkout_start",
+        productId: item.product_id || String(item.id),
+        metadata: {
+          price: item.price,
+          quantity: item.quantity,
+        },
+      });
+    });
+
     let activeKey = idempotencyKey;
     if (!activeKey) {
       activeKey = crypto.randomUUID();
@@ -52,6 +65,19 @@ export default function CartPage() {
       const result = await createOrder(cart.items, adjustedTotalPrice, activeKey);
 
       if (result.success) {
+        // Track purchase for each item in the cart
+        cart.items.forEach((item) => {
+          tracker.track({
+            eventType: "purchase",
+            productId: item.product_id || String(item.id),
+            metadata: {
+              price: item.price,
+              quantity: item.quantity,
+              orderId: result.orderId,
+            },
+          });
+        });
+
         setOrderId(result.orderId);
         setCheckoutStatus("success");
         dispatch(clearCart());
@@ -148,7 +174,9 @@ export default function CartPage() {
                 </div>
                 <Button
                   type="button"
-                  onClick={handleCheckout}
+                  onClick={() => {
+                    handleCheckout();
+                  }}
                   disabled={checkoutStatus !== "idle"}
                   className="text-sm md:text-base font-medium bg-black rounded-full w-full py-4 h-[54px] md:h-[60px] group"
                 >

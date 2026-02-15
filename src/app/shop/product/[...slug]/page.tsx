@@ -3,7 +3,7 @@ import BreadcrumbProduct from "@/components/product-page/BreadcrumbProduct";
 import Header from "@/components/product-page/Header";
 import Tabs from "@/components/product-page/Tabs";
 import { notFound } from "next/navigation";
-import { getProductById, getRelatedProducts } from "@/app/actions/product-actions";
+import { getProductById, getRelatedProducts, getItemRecommendations } from "@/app/actions/product-actions";
 
 export default async function ProductPage({
   params,
@@ -19,13 +19,18 @@ export default async function ProductPage({
     notFound();
   }
 
-  // Fetch related products based on category and department
-  const relatedProductData = await getRelatedProducts(
-    productId,
-    productData.category,
-    productData.department,
-    4
-  );
+  // Fetch related products using item-based recommendations
+  let relatedProductData = await getItemRecommendations(productId, 1, 4);
+
+  // Fallback to category/department based related products if recommendation engine returns nothing
+  if (relatedProductData.length === 0) {
+    relatedProductData = await getRelatedProducts(
+      productId,
+      productData.category,
+      productData.department,
+      4
+    );
+  }
 
   return (
     <main>

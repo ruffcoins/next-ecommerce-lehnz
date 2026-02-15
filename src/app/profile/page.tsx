@@ -46,12 +46,21 @@ export default async function ProfilePage() {
     }
 
     // Fetch recent orders
+    // Fetch recent orders
     const ordersRaw = await Order.find({ customer_id: session.user.id })
         .sort({ created_at: -1 }) // Sort by date descending
         .limit(10)
         .lean();
 
-    const orders = JSON.parse(JSON.stringify(ordersRaw));
+    // Map the orders to plain objects for the client component
+    // This is safer and cleaner than JSON.parse(JSON.stringify())
+    const orders = ordersRaw.map((order: any) => ({
+        _id: order._id.toString(),
+        created_at: order.created_at ? (order.created_at as Date).toISOString() : new Date().toISOString(),
+        status: order.status || 'pending',
+        total_amount: order.total_amount || 0,
+        items: order.items || [],
+    }));
 
     return (
         <div className="container relative mx-auto max-w-frame px-4 xl:px-0 py-8 lg:py-12">
@@ -66,24 +75,24 @@ export default async function ProfilePage() {
 
                     <div className="space-y-2">
                         <p className="text-gray-500 text-sm">Full Name (FN)</p>
-                        <p className="font-medium">{customer.FN || "N/A"}</p>
+                        <p className="font-medium">{customer?.FN || "N/A"}</p>
                     </div>
 
                     <div className="space-y-2">
                         <p className="text-gray-500 text-sm">Email</p>
-                        <p className="font-medium truncate" title={customer.email}>{customer.email || "N/A"}</p>
+                        <p className="font-medium truncate" title={customer?.email}>{customer?.email || "N/A"}</p>
                     </div>
 
                     <div className="space-y-2">
                         <p className="text-gray-500 text-sm">Club Status</p>
                         <div className="inline-block px-3 py-1 bg-gray-100 rounded-full text-sm font-medium">
-                            {customer.club_member_status || "N/A"}
+                            {customer?.club_member_status || "N/A"}
                         </div>
                     </div>
 
                     <div className="space-y-2">
                         <p className="text-gray-500 text-sm">News Frequency</p>
-                        <p className="font-medium">{customer.fashion_news_frequency || "N/A"}</p>
+                        <p className="font-medium">{customer?.fashion_news_frequency || "N/A"}</p>
                     </div>
 
                     <div className="pt-4 border-t mt-4">

@@ -12,6 +12,7 @@ import AddToCardSection from "./AddToCardSection";
 import { useAppSelector, useAppDispatch } from "@/lib/hooks/redux";
 import { RootState } from "@/lib/store";
 import { setSelectedVariation } from "@/lib/features/products/productsSlice";
+import { tracker } from "@/lib/recommendationClient";
 
 const Header = ({ data }: { data: Product }) => {
   const dispatch = useAppDispatch();
@@ -36,6 +37,14 @@ const Header = ({ data }: { data: Product }) => {
 
   // Use the selected variation's price if available, otherwise use the base product price
   const currentPrice = selectedVariation?.price ?? 10000;
+
+  useEffect(() => {
+    tracker.track({
+      eventType: 'view',
+      productId: data.id,
+      metadata: { category: data.category, price: currentPrice }
+    });
+  }, [data.id]);
 
   return (
     <>

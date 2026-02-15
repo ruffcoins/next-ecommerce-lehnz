@@ -44,5 +44,5 @@ export type Product = {
 
 // Helper to generate image URL from article_id
 export const getImageUrl = (articleId: number): string => {
-  return `http://192.168.0.103:8000/images/${articleId}`;
+  return `${process.env.NEXT_PUBLIC_IMAGES_URL}/${articleId}`;
 };

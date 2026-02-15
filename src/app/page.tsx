@@ -4,13 +4,18 @@ import DressStyle from "@/components/homepage/DressStyle";
 import Header from "@/components/homepage/Header";
 import Reviews from "@/components/homepage/Reviews";
 import { Review } from "@/types/review.types";
-import { getAllProducts } from "./actions/product-actions";
+import { getAllProducts, getRecommendedProducts } from "./actions/product-actions";
 
 import { reviewsData } from "@/lib/data";
 
+import Recommendations from "@/components/homepage/Recommendations";
+import { auth } from "@/auth";
+
 export default async function Home() {
+  const session = await auth();
   // Fetch all products from MongoDB
   const allProducts = await getAllProducts();
+  const { products: recommendedProducts } = await getRecommendedProducts(session?.user?.id || "");
 
   // Split products into sections (you can customize this logic)
   // For now, showing first 4 as new arrivals and next 4 as top selling
@@ -23,6 +28,7 @@ export default async function Home() {
       <Header />
       <Brands />
       <main className="my-[50px] sm:my-[72px]">
+        <Recommendations />
         <ProductListSec
           title="NEW ARRIVALS"
           data={newArrivalsData}

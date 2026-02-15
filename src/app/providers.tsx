@@ -20,6 +20,7 @@ import { makeStore } from "../lib/store";
 import { PersistGate } from "redux-persist/integration/react";
 import SpinnerbLoader from "@/components/ui/SpinnerbLoader";
 import { SessionProvider } from "next-auth/react";
+import RecommendationProvider from "@/Providers/recommendationProvider";
 
 type Props = {
   children: React.ReactNode;
@@ -39,7 +40,9 @@ const Providers = ({ children }: Props) => {
         persistor={persistor}
       >
         <SessionProvider>
-          {children}
+          <RecommendationProvider>
+            {children}
+          </RecommendationProvider>
         </SessionProvider>
       </PersistGate>
     </Provider>

@@ -14,6 +14,7 @@ import {
 } from "@/lib/features/carts/cartsSlice";
 import { useAppDispatch } from "@/lib/hooks/redux";
 import { getImageUrl } from "@/types/product.types";
+import { tracker } from "@/lib/recommendationClient";
 
 type ProductCardProps = {
   data: CartItem;
@@ -49,15 +50,19 @@ const ProductCard = ({ data }: ProductCardProps) => {
             variant="ghost"
             size="icon"
             className="h-5 w-5 md:h-9 md:w-9"
-            onClick={() =>
+            onClick={() => {
               dispatch(
                 remove({
                   id: data.id,
                   attributes: data.attributes,
                   quantity: data.quantity,
                 })
-              )
-            }
+              );
+              tracker.track({
+                eventType: "remove_from_cart",
+                productId: String(data.product_id),
+              });
+            }}
           >
             <PiTrashFill className="text-xl md:text-2xl text-red-600" />
           </Button>
@@ -116,19 +121,25 @@ const ProductCard = ({ data }: ProductCardProps) => {
           <CartCounter
             initialValue={data.quantity}
             onAdd={() => dispatch(addToCart({ ...data, quantity: 1 }))}
-            onRemove={() =>
-              data.quantity === 1
-                ? dispatch(
+            onRemove={() => {
+              if (data.quantity === 1) {
+                dispatch(
                   remove({
                     id: data.id,
                     attributes: data.attributes,
                     quantity: data.quantity,
                   })
-                )
-                : dispatch(
+                );
+                tracker.track({
+                  eventType: "remove_from_cart",
+                  productId: String(data.product_id),
+                });
+              } else {
+                dispatch(
                   removeCartItem({ id: data.id, attributes: data.attributes })
-                )
-            }
+                );
+              }
+            }}
             isZeroDelete
             className="px-5 py-3 max-h-8 md:max-h-10 min-w-[105px] max-w-[105px] sm:max-w-32"
           />

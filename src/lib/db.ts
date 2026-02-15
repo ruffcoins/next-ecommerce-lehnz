@@ -211,13 +211,13 @@ const OrderItemSchema = new mongoose.Schema({
 
 const OrderSchema = new mongoose.Schema<IOrder>(
     {
-        customer_id: { type: String },
+        customer_id: { type: String, index: true },
         items: [OrderItemSchema],
         total_amount: { type: Number, required: true },
         transaction_count: { type: Number },
         status: { type: String, default: "pending" },
         idempotency_key: { type: String, unique: true, sparse: true },
-        created_at: { type: Date },
+        created_at: { type: Date, index: true },
         updated_at: { type: Date },
     },
     {
