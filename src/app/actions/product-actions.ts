@@ -81,7 +81,26 @@ export async function getRecommendedProducts(
     }
 
     try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_RECOMMENDATION_API_URL}/recommend?user_id=${userId}&tenant_id=${process.env.NEXT_PUBLIC_TENANT_ID}&page=${page}&limit=${limit}`);
+        const res = await fetch(`${process.env.NEXT_PUBLIC_RECOMMENDATION_API_URL}/recommend`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-API-KEY": process.env.NEXT_PUBLIC_RECOMMENDATION_API_KEY || "",
+                "X-Environment": process.env.NEXT_PUBLIC_ENVIRONMENT || "dev",
+                "X-Domain": process.env.NEXT_PUBLIC_DOMAIN || "ecommerce",
+            },
+            body: JSON.stringify({
+                user_id: userId,
+                limit,
+                page,
+                mode: "semantic",
+                filters: {
+                    "additionalProp1": {}
+                },
+                // tenant_id: process.env.NEXT_PUBLIC_TENANT_ID
+            })
+        });
+
         const data = await res.json();
 
         const idsToFetch = data.all_item_ids || [];
@@ -111,9 +130,15 @@ export async function getItemRecommendations(
     try {
         // Construct URL for item-based recommendations
         // Using "semantic" mode as requested
-        const url = `${process.env.NEXT_PUBLIC_RECOMMENDATION_API_URL}/item/${itemId}?page=${page}&limit=${limit}&mode=semantic&tenant_id=${process.env.NEXT_PUBLIC_TENANT_ID}`;
+        const url = `${process.env.NEXT_PUBLIC_RECOMMENDATION_API_URL}/item/${itemId}?page=${page}&limit=${limit}&mode=semantic`;
 
-        const res = await fetch(url);
+        const res = await fetch(url, {
+            headers: {
+                "X-API-KEY": process.env.LEHNZ_SECRET_KEY || "",
+                "X-Environment": process.env.NEXT_PUBLIC_ENVIRONMENT || "dev",
+                "X-Domain": process.env.NEXT_PUBLIC_DOMAIN || "ecommerce",
+            }
+        });
         const data = await res.json();
 
         const idsToFetch = data.all_item_ids || [];
@@ -414,16 +439,15 @@ export async function getUniqueDepartments(): Promise<string[]> {
 export async function getUniqueColors(): Promise<string[]> {
     try {
         await dbConnect();
-        // Get all products and extract unique colors from available_colors arrays
-        const products = await ProductModel.find({}, { available_colors: 1 }).lean();
-        const allColors = products.flatMap(p => p.available_colors || []);
-        const uniqueColors = Array.from(new Set(allColors)).filter(Boolean).sort();
-        return uniqueColors;
+        // Performance: Use MongoDB distinct() for O(1) memory usage relative to document count
+        const colors = await ProductModel.distinct("available_colors");
+        return colors.filter(Boolean).sort();
     } catch (error) {
         console.error("Error fetching colors:", error);
         return [];
     }
 }
+
 
 /**
  * Get unique product types from all products

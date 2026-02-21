@@ -18,6 +18,7 @@ import { useState, FormEvent } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import InputGroup from "@/components/ui/input-group";
+import { tracker } from "@/lib/recommendationClient";
 
 export default function SearchInput() {
     const router = useRouter();
@@ -27,8 +28,15 @@ export default function SearchInput() {
     const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
-        if (searchQuery.trim()) {
-            router.push(`/shop?search=${encodeURIComponent(searchQuery.trim())}`);
+        const query = searchQuery.trim();
+        if (query) {
+            tracker.track({
+                eventType: 'search',
+                productId: query, // Use query as pseudo product ID for search
+                metadata: { query }
+            });
+            console.log("Search query:", query);
+            router.push(`/shop?search=${encodeURIComponent(query)}`);
         } else {
             router.push("/shop");
         }

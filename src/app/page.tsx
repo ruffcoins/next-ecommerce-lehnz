@@ -3,7 +3,7 @@ import Brands from "@/components/homepage/Brands";
 import DressStyle from "@/components/homepage/DressStyle";
 import Header from "@/components/homepage/Header";
 import Reviews from "@/components/homepage/Reviews";
-import { Review } from "@/types/review.types";
+// import { Review } from "@/types/review.types";
 import { getAllProducts, getRecommendedProducts } from "./actions/product-actions";
 
 import { reviewsData } from "@/lib/data";
@@ -12,16 +12,15 @@ import Recommendations from "@/components/homepage/Recommendations";
 import { auth } from "@/auth";
 
 export default async function Home() {
-  const session = await auth();
-  // Fetch all products from MongoDB
-  const allProducts = await getAllProducts();
-  const { products: recommendedProducts } = await getRecommendedProducts(session?.user?.id || "");
+  const [session, allProducts] = await Promise.all([
+    auth(),
+    getAllProducts()
+  ]);
 
-  // Split products into sections (you can customize this logic)
-  // For now, showing first 4 as new arrivals and next 4 as top selling
+  // Split products into sections
   const newArrivalsData = allProducts.slice(0, 4);
   const topSellingData = allProducts.slice(4, 8);
-  const relatedProductData = allProducts.slice(8, 12);
+
 
   return (
     <>
